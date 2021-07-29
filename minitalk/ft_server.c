@@ -1,10 +1,13 @@
 #include "ft_minitalk.h"
 
-void	handler_s1(int num, siginfo_t *siginfo, void *context)
+void	handler_s1(int num, siginfo_t *info, void *context)
 {
+	(void)context;
     static int	count;
     static char	c;
+	int 		cpid;
 
+	cpid = info->si_pid;
 	if (!count)
 	{
 		c = 0;
@@ -13,12 +16,14 @@ void	handler_s1(int num, siginfo_t *siginfo, void *context)
     if (count != 256)
 	{
 		if (num == SIGUSR2)
-			c = c | count;
+			c |= count;
 		count *= 2;
 	}
 	if (count == 256)
 	{
 		ft_putchar_fd(c, 1);
+		if (c == '\n')
+			kill(cpid, SIGUSR1);
 		c = 0;
 		count = 1;
 	}
@@ -27,16 +32,17 @@ void	handler_s1(int num, siginfo_t *siginfo, void *context)
 int main(void)
 {
 	struct sigaction	sa;
-	int 				cpid;
+	int					pid;
 
 	sa.sa_sigaction = handler_s1;
 	sa.sa_flags = SA_SIGINFO;
-	cpid = si_pid.siginfo_t;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
-	printf("%d\n", getpid());
-	while (1)
+	pid = getpid();
+	ft_putnbr_fd(pid, 1);
+	ft_putchar_fd('\n', 1);
+	while (42)
 	{
 		sleep (1);
 	}
